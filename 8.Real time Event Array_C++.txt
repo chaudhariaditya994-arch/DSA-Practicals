@@ -1,0 +1,157 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+#define SIZE 5  // maximum number of events
+
+class EventQueue {
+    string queue[SIZE];   // to store event names
+    int front, rear;
+
+public:
+    EventQueue() {
+        front = -1;
+        rear = -1;
+    }
+
+    // Add an event
+    void addEvent(string eventName) {
+        if ((rear + 1) % SIZE == front) {
+            cout << "Queue is full! Cannot add: " << eventName << endl;
+            return;
+        }
+
+        if (front == -1)  // first event
+            front = 0;
+
+        rear = (rear + 1) % SIZE;
+        queue[rear] = eventName;
+        cout << "Event Added: " << eventName << endl;
+    }
+
+    // Process next event (remove from front)
+    void processEvent() {
+        if (front == -1) {
+            cout << "No events to process!" << endl;
+            return;
+        }
+
+        cout << "Processing Event: " << queue[front] << endl;
+
+        if (front == rear) {
+            // Only one event left
+            front = rear = -1;
+        } else {
+            front = (front + 1) % SIZE;
+        }
+    }
+
+    // Display all pending events
+    void displayEvents() {
+        if (front == -1) {
+            cout << "No pending events." << endl;
+            return;
+        }
+
+        cout << "\nPending Events:\n";
+        int i = front;
+        while (true) {
+            cout << "→ " << queue[i] << endl;
+            if (i == rear)
+                break;
+            i = (i + 1) % SIZE;
+        }
+        cout << endl;
+    }
+
+    // Cancel a specific event (if still in queue)
+    void cancelEvent(string name) {
+        if (front == -1) {
+            cout << "No events to cancel!" << endl;
+            return;
+        }
+
+        int i = front;
+        bool found = false;
+
+        while (true) {
+            if (queue[i] == name) {
+                found = true;
+                cout << "Event Cancelled: " << name << endl;
+
+                // Shift all events after i
+                while (i != rear) {
+                    int next = (i + 1) % SIZE;
+                    queue[i] = queue[next];
+                    i = next;
+                }
+
+                // Update rear
+                if (rear == front)
+                    front = rear = -1;
+                else
+                    rear = (rear - 1 + SIZE) % SIZE;
+
+                break;
+            }
+
+            if (i == rear)
+                break;
+            i = (i + 1) % SIZE;
+        }
+
+        if (!found)
+            cout << "Event not found!" << endl;
+    }
+};
+
+// Main program
+int main() {
+    EventQueue eq;
+
+    eq.addEvent("User Login");
+    eq.addEvent("File Upload");
+    eq.addEvent("Database Backup");
+    eq.displayEvents();
+
+    eq.processEvent();  // Process first event
+    eq.displayEvents();
+
+    eq.cancelEvent("File Upload");  // Cancel event
+    eq.displayEvents();
+
+    eq.addEvent("System Update");
+    eq.displayEvents();
+
+    return 0;
+}
+
+
+/*OUTPUT
+
+Event Added: User Login
+Event Added: File Upload
+Event Added: Database Backup
+
+Pending Events:
+→ User Login
+→ File Upload
+→ Database Backup
+
+Processing Event: User Login
+
+Pending Events:
+→ File Upload
+→ Database Backup
+
+Event Cancelled: File Upload
+
+Pending Events:
+→ Database Backup
+
+Event Added: System Update
+
+Pending Events:
+→ Database Backup
+→ System Update
+*/
